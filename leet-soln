@@ -1,0 +1,48 @@
+class Solution:
+    def minimumCost(self, source: str, target: str, original: List[str], changed: List[str], cost: List[int]) -> int:
+        adj_map = collections.defaultdict(lambda:collections.defaultdict(lambda:10**6))
+        node_set = set()
+
+        for u, v, c in zip(original, changed, cost):
+            adj_map[u][v] = min(adj_map[u][v], c)
+            node_set.add(u)
+            node_set.add(v)
+
+        def djikstras(source, target):
+            if (source, target) not in memo:
+                if source == target:
+                    return 0
+
+                pq = [(0, source)]
+                costs = {node: math.inf for node in node_set}
+                is_found = False
+
+                while pq:
+                    curr_cost, curr_node = heapq.heappop(pq)
+                    if curr_node == target:
+                        memo[source, target] = curr_cost
+                        is_found = True
+                        break
+
+                    for next_node in adj_map[curr_node]:
+                        next_cost = curr_cost + adj_map[curr_node][next_node]
+                        if next_cost < costs[next_node]:
+                            costs[next_node] = next_cost
+                            heapq.heappush(pq, (next_cost, next_node))
+
+                if not is_found:
+                    memo[source, target] = -1
+
+            return memo[source, target]
+
+        n = len(source)
+        total_cost = 0
+        memo = {}
+
+        for i in range(n):
+            cost = djikstras(source[i], target[i])
+            if cost == -1:
+                return -1
+            total_cost += cost
+
+        return total_cost
